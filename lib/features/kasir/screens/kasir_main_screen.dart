@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:pos_bengkel/core/theme/app_theme.dart';
-import 'package:pos_bengkel/features/kasir/screens/kasir_pos_screen.dart';
-import 'package:pos_bengkel/features/kasir/screens/kasir_invoice_screen.dart';
-import 'package:pos_bengkel/features/kasir/screens/kasir_receivables_screen.dart';
+import 'package:pos_bengkel/features/kasir/screens/penjualan/penjualan_main_screen.dart';
+import 'package:pos_bengkel/features/kasir/screens/pembelian/pembelian_main_screen.dart';
 
 class KasirMainScreen extends StatefulWidget {
   const KasirMainScreen({super.key});
@@ -21,9 +20,8 @@ class _KasirMainScreenState extends State<KasirMainScreen> {
   void initState() {
     super.initState();
     _screens = [
-      const KasirPosScreen(),
-      const KasirInvoiceScreen(),
-      const KasirReceivablesScreen(),
+      const PenjualanMainScreen(),
+      const PembelianMainScreen(),
     ];
   }
 
@@ -43,6 +41,13 @@ class _KasirMainScreenState extends State<KasirMainScreen> {
               width: 1,
             ),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow,
+              blurRadius: 8,
+              offset: const Offset(0, -2),
+            ),
+          ],
         ),
         child: SafeArea(
           child: Padding(
@@ -52,18 +57,15 @@ class _KasirMainScreenState extends State<KasirMainScreen> {
               children: [
                 _buildNavItem(
                   icon: Iconsax.shop,
-                  label: 'Kasir',
+                  activeIcon: Iconsax.shop5,
+                  label: 'Penjualan',
                   index: 0,
                 ),
                 _buildNavItem(
-                  icon: Iconsax.receipt_text,
-                  label: 'Invoice',
+                  icon: Iconsax.buy_crypto,
+                  activeIcon: Iconsax.buy_crypto5,
+                  label: 'Pembelian',
                   index: 1,
-                ),
-                _buildNavItem(
-                  icon: Iconsax.wallet_money,
-                  label: 'Piutang',
-                  index: 2,
                 ),
               ],
             ),
@@ -75,6 +77,7 @@ class _KasirMainScreenState extends State<KasirMainScreen> {
 
   Widget _buildNavItem({
     required IconData icon,
+    required IconData activeIcon,
     required String label,
     required int index,
   }) {
@@ -88,22 +91,22 @@ class _KasirMainScreenState extends State<KasirMainScreen> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withOpacity(0.1)
+              ? AppColors.primary.withOpacity(0.15)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              icon,
-              size: 24,
+              isSelected ? activeIcon : icon,
+              size: 28,
               color: isSelected ? AppColors.primary : AppColors.textTertiary,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
               label,
               style: TextStyle(

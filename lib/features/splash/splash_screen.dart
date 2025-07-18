@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_bengkel/core/theme/app_theme.dart';
-import 'package:pos_bengkel/features/kasir/screens/kasir_main_screen.dart';
+import 'package:pos_bengkel/features/kasir/screens/main_layout_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -49,7 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => const KasirMainScreen(),
+              builder: (context) => const MainLayoutScreen(),
             ),
           );
         }
