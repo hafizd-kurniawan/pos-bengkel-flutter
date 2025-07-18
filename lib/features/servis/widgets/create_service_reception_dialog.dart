@@ -3,7 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:pos_bengkel/core/theme/app_theme.dart';
 import 'package:pos_bengkel/features/servis/providers/service_job_provider.dart';
+import 'package:pos_bengkel/features/kasir/providers/customer_provider.dart';
+import 'package:pos_bengkel/features/kasir/providers/customer_vehicle_provider.dart';
 import 'package:pos_bengkel/shared/models/service_job.dart';
+import 'package:pos_bengkel/shared/models/customer.dart';
+import 'package:pos_bengkel/shared/models/customer_vehicle.dart';
 
 class CreateServiceReceptionDialog extends StatefulWidget {
   final VoidCallback onServiceJobCreated;
@@ -28,12 +32,22 @@ class _CreateServiceReceptionDialogState
 
   DateTime _selectedDate = DateTime.now();
   String _selectedServiceType = 'Datang Langsung';
+  Customer? _selectedCustomer;
+  CustomerVehicle? _selectedVehicle;
 
   final List<String> _serviceTypes = [
     'Datang Langsung',
     'Booking',
     'Emergency',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerProvider>().loadCustomers();
+    });
+  }
 
   @override
   void dispose() {
@@ -47,12 +61,32 @@ class _CreateServiceReceptionDialogState
   void _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedCustomer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan pilih customer terlebih dahulu'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedVehicle == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Silakan pilih kendaraan terlebih dahulu'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     final provider = context.read<ServiceJobProvider>();
 
     final serviceJob = ServiceJob(
       serviceCode: provider.nextServiceCode,
-      customerId: '1', // Default customer ID
-      vehicleId: '1', // Default vehicle ID
+      customerId: _selectedCustomer!.customerId.toString(),
+      vehicleId: _selectedVehicle!.vehicleId.toString(),
       userId: '1', // hafizd-kurniawan user ID
       outletId: '1', // Default outlet ID
       serviceDate: _selectedDate,
@@ -178,6 +212,77 @@ class _CreateServiceReceptionDialogState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Customer Selection
+                      Consumer<CustomerProvider>(
+                        builder: (context, customerProvider, _) {
+                          return DropdownButtonFormField<Customer>(
+                            value: _selectedCustomer,
+                            decoration: const InputDecoration(
+                              labelText: 'Pilih Customer *',
+                              prefixIcon: Icon(Iconsax.user),
+                            ),
+                            hint: const Text('Pilih customer'),
+                            items: customerProvider.customers.map((customer) {
+                              return DropdownMenuItem<Customer>(
+                                value: customer,
+                                child: Text('${customer.name} (${customer.phoneNumber})'),
+                              );
+                            }).toList(),
+                            onChanged: (customer) {
+                              setState(() {
+                                _selectedCustomer = customer;
+                                _selectedVehicle = null; // Reset vehicle selection
+                              });
+                              if (customer != null) {
+                                // Load vehicles for selected customer
+                                context.read<CustomerVehicleProvider>().loadVehiclesByCustomerId(customer.customerId.toString());
+                              }
+                            },
+                            validator: (value) {
+                              if (value == null) {
+                                return 'Silakan pilih customer';
+                              }
+                              return null;
+                            },
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Vehicle Selection
+                      if (_selectedCustomer != null)
+                        Consumer<CustomerVehicleProvider>(
+                          builder: (context, vehicleProvider, _) {
+                            return DropdownButtonFormField<CustomerVehicle>(
+                              value: _selectedVehicle,
+                              decoration: const InputDecoration(
+                                labelText: 'Pilih Kendaraan *',
+                                prefixIcon: Icon(Iconsax.car),
+                              ),
+                              hint: const Text('Pilih kendaraan customer'),
+                              items: vehicleProvider.customerVehicles.map((vehicle) {
+                                return DropdownMenuItem<CustomerVehicle>(
+                                  value: vehicle,
+                                  child: Text('${vehicle.plateNumber} - ${vehicle.brand} ${vehicle.model}'),
+                                );
+                              }).toList(),
+                              onChanged: (vehicle) {
+                                setState(() {
+                                  _selectedVehicle = vehicle;
+                                });
+                              },
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'Silakan pilih kendaraan';
+                                }
+                                return null;
+                              },
+                            );
+                          },
+                        ),
+                      if (_selectedCustomer != null)
+                        const SizedBox(height: 16),
+
                       // Service Type
                       DropdownButtonFormField<String>(
                         value: _selectedServiceType,

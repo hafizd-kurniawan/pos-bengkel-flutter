@@ -8,32 +8,29 @@ import 'package:pos_bengkel/features/servis/providers/service_job_provider.dart'
 import 'package:pos_bengkel/features/servis/widgets/create_service_job_dialog.dart';
 import 'package:pos_bengkel/shared/models/service_job.dart';
 
-class ServiceJobScreen extends StatefulWidget {
-  const ServiceJobScreen({super.key});
+class ServiceCompletionScreen extends StatefulWidget {
+  const ServiceCompletionScreen({super.key});
 
   @override
-  State<ServiceJobScreen> createState() => _ServiceJobScreenState();
+  State<ServiceCompletionScreen> createState() => _ServiceCompletionScreenState();
 }
 
-class _ServiceJobScreenState extends State<ServiceJobScreen> {
+class _ServiceCompletionScreenState extends State<ServiceCompletionScreen> {
   final TextEditingController _searchController = TextEditingController();
   int _selectedEntriesPerPage = 10;
   int _currentPage = 1;
 
   final List<String> _statusOptions = [
-    'Semua',
-    'Pending',
-    'In Progress',
     'Completed',
-    'Cancelled',
+    'Ready for Pickup',
   ];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ServiceJobProvider>().loadServiceJobs();
-      context.read<ServiceJobProvider>().loadNextServiceCode();
+      // Load only completed service jobs
+      context.read<ServiceJobProvider>().loadServiceJobs(status: 'Completed');
     });
   }
 
@@ -43,14 +40,12 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
     super.dispose();
   }
 
-  void _showCreateDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => CreateServiceJobDialog(
-        onServiceJobCreated: () {
-          context.read<ServiceJobProvider>().loadServiceJobs();
-        },
+  void _showCompletionDialog(ServiceJob serviceJob) {
+    // TODO: Create service completion dialog for finalizing pickup
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Fitur finalisasi pengambilan akan segera tersedia'),
+        backgroundColor: AppColors.info,
       ),
     );
   }
@@ -79,7 +74,7 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Manajemen Service Job',
+                            'Pengambilan Setelah Servis',
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -87,7 +82,7 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Kelola service kendaraan dari awal hingga selesai',
+                            'Kelola pengambilan kendaraan yang sudah selesai servis',
                             style: TextStyle(
                               color: AppColors.textSecondary,
                             ),
@@ -96,9 +91,12 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                       ),
                     ),
                     ElevatedButton.icon(
-                      onPressed: _showCreateDialog,
-                      icon: const Icon(Iconsax.add),
-                      label: const Text('Buat Service Job'),
+                      onPressed: () {
+                        // Refresh completed services
+                        context.read<ServiceJobProvider>().loadServiceJobs(status: 'Completed');
+                      },
+                      icon: const Icon(Iconsax.refresh),
+                      label: const Text('Refresh Data'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(
@@ -354,10 +352,9 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                                 DataColumn(label: Text('Customer')),
                                 DataColumn(label: Text('No. Pol')),
                                 DataColumn(label: Text('Kendaraan')),
+                                DataColumn(label: Text('Total Biaya')),
+                                DataColumn(label: Text('Tanggal Selesai')),
                                 DataColumn(label: Text('Status')),
-                                DataColumn(label: Text('Est. Cost')),
-                                DataColumn(label: Text('Actual Cost')),
-                                DataColumn(label: Text('Service Date')),
                                 DataColumn(label: Text('Aksi')),
                               ],
                               rows: List.generate(
@@ -419,34 +416,8 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
         ),
         DataCell(Text(serviceJob.vehicleInfo)),
         DataCell(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: _getStatusColor(serviceJob.status).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              serviceJob.status,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: _getStatusColor(serviceJob.status),
-              ),
-            ),
-          ),
-        ),
-        DataCell(
           Text(
-            CurrencyFormatter.format(serviceJob.estimatedCost),
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.warning,
-            ),
-          ),
-        ),
-        DataCell(
-          Text(
-            CurrencyFormatter.format(serviceJob.actualCost),
+            CurrencyFormatter.format(serviceJob.actualCost > 0 ? serviceJob.actualCost : serviceJob.estimatedCost),
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               color: AppColors.success,
@@ -455,8 +426,25 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
         ),
         DataCell(
           Text(
-            DateFormatter.formatDate(serviceJob.serviceDate),
+            DateFormatter.formatDate(serviceJob.updatedAt),
             style: const TextStyle(fontSize: 12),
+          ),
+        ),
+        DataCell(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.success.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Siap Diambil',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.success,
+              ),
+            ),
           ),
         ),
         DataCell(
@@ -469,85 +457,17 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                 tooltip: 'Lihat Detail',
                 color: AppColors.info,
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  switch (value) {
-                    case 'in_progress':
-                      _updateStatus(serviceJob, 'In Progress', provider);
-                      break;
-                    case 'completed':
-                      _updateStatus(serviceJob, 'Completed', provider);
-                      break;
-                    case 'cancelled':
-                      _updateStatus(serviceJob, 'Cancelled', provider);
-                      break;
-                    case 'edit':
-                      _showEditDialog(serviceJob);
-                      break;
-                    case 'delete':
-                      _showDeleteDialog(serviceJob, provider);
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  if (serviceJob.status == 'Pending')
-                    const PopupMenuItem(
-                      value: 'in_progress',
-                      child: Row(
-                        children: [
-                          Icon(Iconsax.play, size: 16, color: AppColors.info),
-                          SizedBox(width: 8),
-                          Text('Mulai Kerjakan'),
-                        ],
-                      ),
-                    ),
-                  if (serviceJob.status == 'In Progress')
-                    const PopupMenuItem(
-                      value: 'completed',
-                      child: Row(
-                        children: [
-                          Icon(Iconsax.tick_circle,
-                              size: 16, color: AppColors.success),
-                          SizedBox(width: 8),
-                          Text('Tandai Selesai'),
-                        ],
-                      ),
-                    ),
-                  if (serviceJob.status != 'Cancelled' &&
-                      serviceJob.status != 'Completed')
-                    const PopupMenuItem(
-                      value: 'cancelled',
-                      child: Row(
-                        children: [
-                          Icon(Iconsax.close_circle,
-                              size: 16, color: AppColors.error),
-                          SizedBox(width: 8),
-                          Text('Batalkan'),
-                        ],
-                      ),
-                    ),
-                  const PopupMenuItem(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Iconsax.edit, size: 16, color: AppColors.warning),
-                        SizedBox(width: 8),
-                        Text('Edit'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        Icon(Iconsax.trash, size: 16, color: AppColors.error),
-                        SizedBox(width: 8),
-                        Text('Hapus'),
-                      ],
-                    ),
-                  ),
-                ],
-                child: const Icon(Iconsax.more, size: 18),
+              IconButton(
+                onPressed: () => _showCostBreakdownDialog(serviceJob),
+                icon: const Icon(Iconsax.receipt_text, size: 18),
+                tooltip: 'Rincian Biaya',
+                color: AppColors.warning,
+              ),
+              IconButton(
+                onPressed: () => _showPickupDialog(serviceJob, provider),
+                icon: const Icon(Iconsax.tick_circle, size: 18),
+                tooltip: 'Finalisasi Pengambilan',
+                color: AppColors.success,
               ),
             ],
           ),
@@ -558,16 +478,12 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'pending':
-        return AppColors.warning;
-      case 'in progress':
-        return AppColors.info;
       case 'completed':
         return AppColors.success;
-      case 'cancelled':
-        return AppColors.error;
+      case 'ready for pickup':
+        return AppColors.info;
       default:
-        return AppColors.textTertiary;
+        return AppColors.success; // Default to success since we only show completed services
     }
   }
 
@@ -575,7 +491,7 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Detail Service Job'),
+        title: const Text('Detail Service'),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,8 +513,8 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
                   DateFormatter.formatDateTime(serviceJob.serviceDate)),
               if (serviceJob.notes != null && serviceJob.notes!.isNotEmpty)
                 _buildDetailRow('Catatan:', serviceJob.notes!),
-              _buildDetailRow('Dibuat:',
-                  DateFormatter.formatDateTime(serviceJob.createdAt)),
+              _buildDetailRow('Selesai:',
+                  DateFormatter.formatDateTime(serviceJob.updatedAt)),
             ],
           ),
         ),
@@ -606,6 +522,183 @@ class _ServiceJobScreenState extends State<ServiceJobScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCostBreakdownDialog(ServiceJob serviceJob) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Iconsax.receipt_text, color: AppColors.warning),
+            SizedBox(width: 8),
+            Text('Rincian Biaya'),
+          ],
+        ),
+        content: SizedBox(
+          width: 400,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Service Code: ${serviceJob.serviceCode}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                
+                // Service Details Table
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            topRight: Radius.circular(8),
+                          ),
+                        ),
+                        child: const Row(
+                          children: [
+                            Expanded(flex: 3, child: Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.bold))),
+                            Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold))),
+                            Expanded(flex: 2, child: Text('Harga', style: TextStyle(fontWeight: FontWeight.bold))),
+                            Expanded(flex: 2, child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
+                          ],
+                        ),
+                      ),
+                      
+                      // TODO: Replace with actual service details from API
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        child: const Row(
+                          children: [
+                            Expanded(flex: 3, child: Text('Service & Parts')),
+                            Expanded(flex: 1, child: Text('1')),
+                            Expanded(flex: 2, child: Text('-')),
+                            Expanded(flex: 2, child: Text('-')),
+                          ],
+                        ),
+                      ),
+                      
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(8),
+                            bottomRight: Radius.circular(8),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Expanded(flex: 6, child: Text('Total Biaya:', style: TextStyle(fontWeight: FontWeight.bold))),
+                            Expanded(
+                              flex: 2, 
+                              child: Text(
+                                CurrencyFormatter.format(serviceJob.actualCost > 0 ? serviceJob.actualCost : serviceJob.estimatedCost),
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.success),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Detail rincian biaya akan ditampilkan setelah integrasi dengan service details API.',
+                    style: TextStyle(color: AppColors.info, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tutup'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPickupDialog(ServiceJob serviceJob, ServiceJobProvider provider) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Iconsax.tick_circle, color: AppColors.success),
+            SizedBox(width: 8),
+            Text('Finalisasi Pengambilan'),
+          ],
+        ),
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Konfirmasi pengambilan kendaraan:'),
+            const SizedBox(height: 8),
+            Text('• No. Polisi: ${serviceJob.plateNumber}', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text('• Customer: ${serviceJob.customerName}'),
+            Text('• Total Biaya: ${CurrencyFormatter.format(serviceJob.actualCost > 0 ? serviceJob.actualCost : serviceJob.estimatedCost)}'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.warning.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Setelah dikonfirmasi, status akan berubah menjadi "Diambil" dan kendaraan dianggap telah diserahkan kepada customer.',
+                style: TextStyle(color: AppColors.warning, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              // TODO: Implement pickup finalization
+              // This would typically update the service job status to "Picked Up" or "Delivered"
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Pengambilan kendaraan berhasil dikonfirmasi'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.success,
+            ),
+            child: const Text('Konfirmasi Pengambilan'),
           ),
         ],
       ),

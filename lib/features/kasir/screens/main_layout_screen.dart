@@ -9,7 +9,7 @@ import 'package:pos_bengkel/features/kasir/screens/pembelian/purchase_history_sc
 import 'package:pos_bengkel/features/kasir/screens/dashboard_screen.dart';
 import 'package:pos_bengkel/features/kasir/screens/settings_screen.dart';
 import 'package:pos_bengkel/features/servis/screens/service_reception_screen.dart';
-import 'package:pos_bengkel/features/servis/screens/service_job_screen.dart';
+import 'package:pos_bengkel/features/servis/screens/service_completion_screen.dart';
 import 'package:pos_bengkel/features/master/screens/product_master_screen.dart';
 import 'package:pos_bengkel/features/master/screens/customer_master_screen.dart';
 import 'package:pos_bengkel/features/master/screens/vehicle_master_screen.dart';
@@ -92,10 +92,10 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       parentGroup: 'servis_group',
     ),
     NavigationItem(
-      id: 'service_jobs',
-      title: 'Service Jobs',
-      icon: Iconsax.setting_2,
-      activeIcon: Iconsax.setting_25,
+      id: 'service_completion',
+      title: 'Pengambilan Setelah Servis',
+      icon: Iconsax.tick_circle,
+      activeIcon: Iconsax.tick_circle5,
       isGroup: false,
       parentGroup: 'servis_group',
     ),
@@ -228,7 +228,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       'invoice': const KasirInvoiceScreen(),
       'piutang': const KasirReceivablesScreen(),
       'penerimaan_servis': const ServiceReceptionScreen(),
-      'service_jobs': const ServiceJobScreen(),
+      'service_completion': const ServiceCompletionScreen(),
       'products_master': const ProductMasterScreen(),
       'customers_master': const CustomerMasterScreen(),
       'vehicles_master': const VehicleMasterScreen(),
@@ -285,8 +285,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Manajemen Piutang';
       case 'penerimaan_servis':
         return 'Penerimaan Servis';
-      case 'service_jobs':
-        return 'Service Jobs';
+      case 'service_completion':
+        return 'Pengambilan Setelah Servis';
       case 'products_master':
         return 'Data Barang';
       case 'customers_master':
@@ -323,8 +323,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Kelola tagihan yang belum lunas';
       case 'penerimaan_servis':
         return 'Kelola penerimaan kendaraan untuk servis';
-      case 'service_jobs':
-        return 'Kelola service kendaraan dari awal hingga selesai';
+      case 'service_completion':
+        return 'Kelola pengambilan kendaraan yang sudah selesai servis';
       case 'products_master':
         return 'Kelola data produk dan spare parts (Read Only)';
       case 'customers_master':
