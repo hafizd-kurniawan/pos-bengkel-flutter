@@ -10,7 +10,12 @@ import 'package:pos_bengkel/features/kasir/screens/dashboard_screen.dart';
 import 'package:pos_bengkel/features/kasir/screens/settings_screen.dart';
 import 'package:pos_bengkel/features/servis/screens/service_reception_screen.dart';
 import 'package:pos_bengkel/features/servis/screens/service_job_screen.dart';
-import 'package:pos_bengkel/features/master/screens/data_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/product_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/customer_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/vehicle_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_category_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_price_list_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -26,7 +31,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
   late AnimationController _animationController;
   late Animation<double> _animation;
 
-  // Menu items dengan grouping
+  // Menu items dengan grouping yang lebih lengkap
   final List<NavigationItem> _navigationItems = [
     // Dashboard
     NavigationItem(
@@ -95,7 +100,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       parentGroup: 'servis_group',
     ),
 
-    // Data Master Group - TAMBAHKAN INI
+    // Data Master Group
     NavigationItem(
       id: 'master_group',
       title: 'DATA MASTER',
@@ -104,12 +109,58 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       isGroup: true,
     ),
     NavigationItem(
-      id: 'data_master',
-      title: 'Master Data',
-      icon: Iconsax.archive,
-      activeIcon: Iconsax.archive5,
+      id: 'products_master',
+      title: 'Data Barang',
+      icon: Iconsax.box,
+      activeIcon: Iconsax.box5,
       isGroup: false,
       parentGroup: 'master_group',
+      isReadOnly: true,
+    ),
+    NavigationItem(
+      id: 'customers_master',
+      title: 'Customer',
+      icon: Iconsax.user,
+      activeIcon: Iconsax.user5,
+      isGroup: false,
+      parentGroup: 'master_group',
+      isReadOnly: false,
+    ),
+    NavigationItem(
+      id: 'vehicles_master',
+      title: 'Kendaraan',
+      icon: Iconsax.car,
+      activeIcon: Iconsax.car5,
+      isGroup: false,
+      parentGroup: 'master_group',
+      isReadOnly: false,
+    ),
+    NavigationItem(
+      id: 'services_master',
+      title: 'Data Servis',
+      icon: Iconsax.setting_2,
+      activeIcon: Iconsax.setting_25,
+      isGroup: false,
+      parentGroup: 'master_group',
+      isReadOnly: true,
+    ),
+    NavigationItem(
+      id: 'service_categories_master',
+      title: 'Kategori Servis',
+      icon: Iconsax.category,
+      activeIcon: Iconsax.category5,
+      isGroup: false,
+      parentGroup: 'master_group',
+      isReadOnly: true,
+    ),
+    NavigationItem(
+      id: 'price_lists_master',
+      title: 'Price List Servis',
+      icon: Iconsax.money_recive,
+      activeIcon: Iconsax.money_recive5,
+      isGroup: false,
+      parentGroup: 'master_group',
+      isReadOnly: true,
     ),
 
     // Pembelian Group
@@ -178,7 +229,12 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       'piutang': const KasirReceivablesScreen(),
       'penerimaan_servis': const ServiceReceptionScreen(),
       'service_jobs': const ServiceJobScreen(),
-      'data_master': const DataMasterScreen(), // TAMBAHKAN INI
+      'products_master': const ProductMasterScreen(),
+      'customers_master': const CustomerMasterScreen(),
+      'vehicles_master': const VehicleMasterScreen(),
+      'services_master': const ServiceMasterScreen(),
+      'service_categories_master': const ServiceCategoryMasterScreen(),
+      'price_lists_master': const ServicePriceListScreen(),
       'beli_kendaraan': const VehiclePurchaseScreen(),
       'riwayat_pembelian': const PurchaseHistoryScreen(),
       'settings': const SettingsScreen(),
@@ -231,8 +287,18 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Penerimaan Servis';
       case 'service_jobs':
         return 'Service Jobs';
-      case 'data_master':
-        return 'Data Master';
+      case 'products_master':
+        return 'Data Barang';
+      case 'customers_master':
+        return 'Data Customer';
+      case 'vehicles_master':
+        return 'Data Kendaraan';
+      case 'services_master':
+        return 'Data Servis';
+      case 'service_categories_master':
+        return 'Kategori Servis';
+      case 'price_lists_master':
+        return 'Price List Servis';
       case 'beli_kendaraan':
         return 'Pembelian Kendaraan';
       case 'riwayat_pembelian':
@@ -259,8 +325,18 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Kelola penerimaan kendaraan untuk servis';
       case 'service_jobs':
         return 'Kelola service kendaraan dari awal hingga selesai';
-      case 'data_master':
-        return 'Kelola data master sistem';
+      case 'products_master':
+        return 'Kelola data produk dan spare parts (Read Only)';
+      case 'customers_master':
+        return 'Kelola data customer dan pelanggan';
+      case 'vehicles_master':
+        return 'Kelola data kendaraan customer';
+      case 'services_master':
+        return 'Kelola data layanan servis (Read Only)';
+      case 'service_categories_master':
+        return 'Kelola kategori layanan servis (Read Only)';
+      case 'price_lists_master':
+        return 'Kelola daftar harga layanan (Read Only)';
       case 'beli_kendaraan':
         return 'Catat pembelian kendaraan baru';
       case 'riwayat_pembelian':
@@ -272,7 +348,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
     }
   }
 
-  // ... sisanya sama seperti sebelumnya
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -418,7 +493,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Hafizd Kurniawan',
+                                    'hafizd-kurniawan',
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -658,6 +733,26 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
                       ),
                     ),
                   ),
+                  if (item.isReadOnly) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'READ',
+                        style: TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ],
             ),
@@ -694,7 +789,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
   }
 }
 
-// Navigation Item Model
+// Navigation Item Model dengan tambahan isReadOnly
 class NavigationItem {
   final String id;
   final String title;
@@ -702,6 +797,7 @@ class NavigationItem {
   final IconData activeIcon;
   final bool isGroup;
   final String? parentGroup;
+  final bool isReadOnly;
 
   NavigationItem({
     required this.id,
@@ -710,5 +806,6 @@ class NavigationItem {
     required this.activeIcon,
     required this.isGroup,
     this.parentGroup,
+    this.isReadOnly = false,
   });
 }

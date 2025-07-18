@@ -1,15 +1,133 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:pos_bengkel/core/theme/app_theme.dart';
 
-class ServiceMasterScreen extends StatelessWidget {
-  const ServiceMasterScreen({super.key});
+class ServicePriceListScreen extends StatelessWidget {
+  const ServicePriceListScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'Service Master Screen - Coming Soon',
-          style: TextStyle(fontSize: 24),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // Header dengan info Read Only
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Iconsax.money_recive,
+                      color: AppColors.error,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Price List Servis',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Kelola daftar harga layanan servis sistem',
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Iconsax.eye, size: 16, color: AppColors.warning),
+                        SizedBox(width: 6),
+                        Text(
+                          'READ ONLY',
+                          style: TextStyle(
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Content placeholder
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Iconsax.money_recive,
+                        size: 64,
+                        color: AppColors.textTertiary,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Price List Servis',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Fitur akan segera tersedia',
+                        style: TextStyle(
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
