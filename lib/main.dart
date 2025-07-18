@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/themes/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/kasir/providers/customer_provider.dart';
+import 'features/kasir/providers/service_provider.dart';
+import 'features/kasir/providers/transaction_provider.dart';
+import 'features/mekanik/providers/mekanik_provider.dart';
 import 'features/auth/screens/role_selection_screen.dart';
 import 'features/kasir/screens/kasir_main_screen.dart';
 import 'features/mekanik/screens/mekanik_main_screen.dart';
@@ -19,6 +23,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CustomerProvider()),
+        ChangeNotifierProvider(create: (_) => ServiceProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+        ChangeNotifierProvider(create: (_) => MekanikProvider()),
       ],
       child: MaterialApp(
         title: AppConstants.appName,

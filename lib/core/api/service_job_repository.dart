@@ -2,61 +2,6 @@ import '../../core/api/api_service.dart';
 import '../../shared/models/api_response.dart';
 import '../../shared/models/service.dart';
 
-class ServiceRepository {
-  final ApiService _apiService = ApiService();
-
-  // Get all services
-  Future<ApiResponse<List<Service>>> getServices({
-    int page = 1,
-    int limit = 10,
-  }) async {
-    return await _apiService.get<List<Service>>(
-      '/services',
-      queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      },
-      fromJson: Service.fromJson,
-    );
-  }
-
-  // Get service by ID
-  Future<ApiResponse<Service>> getService(int id) async {
-    return await _apiService.get<Service>(
-      '/services/$id',
-      fromJson: Service.fromJson,
-    );
-  }
-
-  // Get service by code
-  Future<ApiResponse<Service>> getServiceByCode(String serviceCode) async {
-    return await _apiService.get<Service>(
-      '/services/code',
-      queryParameters: {
-        'service_code': serviceCode,
-      },
-      fromJson: Service.fromJson,
-    );
-  }
-
-  // Search services
-  Future<ApiResponse<List<Service>>> searchServices({
-    required String query,
-    int page = 1,
-    int limit = 10,
-  }) async {
-    return await _apiService.get<List<Service>>(
-      '/services/search',
-      queryParameters: {
-        'q': query,
-        'page': page.toString(),
-        'limit': limit.toString(),
-      },
-      fromJson: Service.fromJson,
-    );
-  }
-}
-
 class ServiceJobRepository {
   final ApiService _apiService = ApiService();
 
@@ -64,13 +9,20 @@ class ServiceJobRepository {
   Future<ApiResponse<List<ServiceJob>>> getServiceJobs({
     int page = 1,
     int limit = 10,
+    String? status,
   }) async {
+    final queryParams = {
+      'page': page.toString(),
+      'limit': limit.toString(),
+    };
+    
+    if (status != null) {
+      queryParams['status'] = status;
+    }
+
     return await _apiService.get<List<ServiceJob>>(
       '/service-jobs',
-      queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      },
+      queryParameters: queryParams,
       fromJson: ServiceJob.fromJson,
     );
   }
@@ -85,7 +37,6 @@ class ServiceJobRepository {
 
   // Create service job
   Future<ApiResponse<ServiceJob>> createServiceJob({
-    required String serviceCode,
     required int customerId,
     required int vehicleId,
     required int userId,
@@ -94,13 +45,11 @@ class ServiceJobRepository {
     required String complaint,
     String? diagnosis,
     required double estimatedCost,
-    String status = 'Pending',
     String? notes,
   }) async {
     return await _apiService.post<ServiceJob>(
       '/service-jobs',
       body: {
-        'service_code': serviceCode,
         'customer_id': customerId,
         'vehicle_id': vehicleId,
         'user_id': userId,
@@ -109,7 +58,6 @@ class ServiceJobRepository {
         'complaint': complaint,
         'diagnosis': diagnosis,
         'estimated_cost': estimatedCost,
-        'status': status,
         'notes': notes,
       },
       fromJson: ServiceJob.fromJson,
@@ -137,23 +85,23 @@ class ServiceJobRepository {
 
   // Update service job status
   Future<ApiResponse<ServiceJob>> updateServiceJobStatus(
-    int id, {
-    required String status,
-    String? statusNotes,
+    int id,
+    String status, {
+    String? notes,
   }) async {
     return await _apiService.put<ServiceJob>(
       '/service-jobs/$id/status',
       body: {
         'status': status,
-        'status_notes': statusNotes,
+        'notes': notes,
       },
       fromJson: ServiceJob.fromJson,
     );
   }
 
   // Get service jobs by status
-  Future<ApiResponse<List<ServiceJob>>> getServiceJobsByStatus({
-    required String status,
+  Future<ApiResponse<List<ServiceJob>>> getServiceJobsByStatus(
+    String status, {
     int page = 1,
     int limit = 10,
   }) async {
@@ -168,36 +116,34 @@ class ServiceJobRepository {
     );
   }
 
-  // Get service jobs by customer
-  Future<ApiResponse<List<ServiceJob>>> getServiceJobsByCustomer({
-    required int customerId,
-    int page = 1,
-    int limit = 10,
-  }) async {
-    return await _apiService.get<List<ServiceJob>>(
-      '/customers/$customerId/service-jobs',
-      queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      },
-      fromJson: ServiceJob.fromJson,
+  // Get service job history
+  Future<ApiResponse<List<ServiceJobHistory>>> getServiceJobHistory(
+    int serviceJobId,
+  ) async {
+    return await _apiService.get<List<ServiceJobHistory>>(
+      '/service-jobs/$serviceJobId/histories',
+      fromJson: ServiceJobHistory.fromJson,
     );
   }
 
-  // Get service job by service code
-  Future<ApiResponse<ServiceJob>> getServiceJobByCode(String serviceCode) async {
-    return await _apiService.get<ServiceJob>(
-      '/service-jobs/service-code',
-      queryParameters: {
-        'service_code': serviceCode,
-      },
-      fromJson: ServiceJob.fromJson,
-    );
+  // Delete service job
+  Future<ApiResponse<void>> deleteServiceJob(int id) async {
+    return await _apiService.delete<void>('/service-jobs/$id');
   }
 }
 
 class ServiceDetailRepository {
   final ApiService _apiService = ApiService();
+
+  // Get service details for a job
+  Future<ApiResponse<List<ServiceDetail>>> getServiceDetails(
+    int serviceJobId,
+  ) async {
+    return await _apiService.get<List<ServiceDetail>>(
+      '/service-jobs/$serviceJobId/details',
+      fromJson: ServiceDetail.fromJson,
+    );
+  }
 
   // Create service detail
   Future<ApiResponse<ServiceDetail>> createServiceDetail({
@@ -208,6 +154,8 @@ class ServiceDetailRepository {
     double discount = 0,
     String? notes,
   }) async {
+    final subtotal = (quantity * unitPrice) - discount;
+    
     return await _apiService.post<ServiceDetail>(
       '/service-details',
       body: {
@@ -216,6 +164,7 @@ class ServiceDetailRepository {
         'quantity': quantity,
         'unit_price': unitPrice,
         'discount': discount,
+        'subtotal': subtotal,
         'notes': notes,
       },
       fromJson: ServiceDetail.fromJson,
@@ -246,27 +195,5 @@ class ServiceDetailRepository {
   // Delete service detail
   Future<ApiResponse<void>> deleteServiceDetail(int id) async {
     return await _apiService.delete<void>('/service-details/$id');
-  }
-
-  // Get service details for a service job
-  Future<ApiResponse<List<ServiceDetail>>> getServiceDetailsByJob(
-      int serviceJobId) async {
-    return await _apiService.get<List<ServiceDetail>>(
-      '/service-jobs/$serviceJobId/details',
-      fromJson: ServiceDetail.fromJson,
-    );
-  }
-}
-
-class ServiceJobHistoryRepository {
-  final ApiService _apiService = ApiService();
-
-  // Get service job history
-  Future<ApiResponse<List<ServiceJobHistory>>> getServiceJobHistory(
-      int serviceJobId) async {
-    return await _apiService.get<List<ServiceJobHistory>>(
-      '/service-jobs/$serviceJobId/histories',
-      fromJson: ServiceJobHistory.fromJson,
-    );
   }
 }

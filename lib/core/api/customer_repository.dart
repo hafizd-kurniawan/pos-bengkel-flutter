@@ -1,6 +1,6 @@
-import '../core/api/api_service.dart';
-import '../shared/models/api_response.dart';
-import '../shared/models/customer.dart';
+import '../../core/api/api_service.dart';
+import '../../shared/models/api_response.dart';
+import '../../shared/models/customer.dart';
 
 class CustomerRepository {
   final ApiService _apiService = ApiService();
