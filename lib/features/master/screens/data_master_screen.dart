@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:provider/provider.dart';
 import 'package:pos_bengkel/core/theme/app_theme.dart';
+import 'package:pos_bengkel/features/master/providers/master_data_provider.dart';
+import 'package:pos_bengkel/features/master/providers/export_provider.dart';
+import 'package:pos_bengkel/features/master/screens/product_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/customer_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/vehicle_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_category_master_screen.dart';
+import 'package:pos_bengkel/features/master/screens/service_price_list_screen.dart';
 
 class DataMasterScreen extends StatefulWidget {
   const DataMasterScreen({super.key});
@@ -60,11 +69,11 @@ class _DataMasterScreenState extends State<DataMasterScreen> {
     ),
     MasterMenuItem(
       id: 'price_lists',
-      title: 'Price List Servis',
+      title: 'Daftar Harga',
       subtitle: 'Kelola daftar harga layanan',
       icon: Iconsax.money_recive,
       activeIcon: Iconsax.money_recive5,
-      color: AppColors.error,
+      color: AppColors.success,
       isReadOnly: true,
     ),
   ];
@@ -72,37 +81,52 @@ class _DataMasterScreenState extends State<DataMasterScreen> {
   Widget _getCurrentScreen() {
     final currentItem = _menuItems[_selectedIndex];
 
-    // Return simple placeholder for now
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              currentItem.activeIcon,
-              size: 64,
-              color: currentItem.color,
+    // Return actual implemented screens
+    switch (currentItem.id) {
+      case 'products':
+        return const ProductMasterScreen();
+      case 'customers':
+        return const CustomerMasterScreen();
+      case 'vehicles':
+        return const VehicleMasterScreen();
+      case 'services':
+        return const ServiceMasterScreen();
+      case 'service_categories':
+        return const ServiceCategoryMasterScreen();
+      case 'price_lists':
+        return const ServicePriceListScreen();
+      default:
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  currentItem.activeIcon,
+                  size: 64,
+                  color: currentItem.color,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  '${currentItem.title} - Coming Soon',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  currentItem.subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              '${currentItem.title} - Coming Soon',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              currentItem.subtitle,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
+    }
   }
 
   String _getCurrentTitle() {
@@ -115,293 +139,299 @@ class _DataMasterScreenState extends State<DataMasterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Row(
-        children: [
-          // Sidebar Menu
-          Container(
-            width: 320,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              border: Border(
-                right: BorderSide(color: AppColors.border),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => MasterDataProvider()),
+        ChangeNotifierProvider(create: (context) => ExportProvider()),
+      ],
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Row(
+          children: [
+            // Sidebar Menu
+            Container(
+              width: 320,
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                border: Border(
+                  right: BorderSide(color: AppColors.border),
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.border),
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.border),
+                      ),
                     ),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Iconsax.archive,
-                        color: AppColors.primary,
-                        size: 28,
-                      ),
-                      SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'DATA MASTER',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            'Kelola data master sistem',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Menu Items
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _menuItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _menuItems[index];
-                      final isSelected = _selectedIndex == index;
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _selectedIndex = index;
-                              });
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? item.color.withOpacity(0.1)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected
-                                    ? Border.all(
-                                        color: item.color.withOpacity(0.3))
-                                    : null,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? item.color
-                                          : item.color.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      isSelected ? item.activeIcon : item.icon,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : item.color,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                item.title,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: isSelected
-                                                      ? FontWeight.w600
-                                                      : FontWeight.w500,
-                                                  color: isSelected
-                                                      ? item.color
-                                                      : AppColors.textPrimary,
-                                                ),
-                                              ),
-                                            ),
-                                            if (item.isReadOnly)
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 6,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.warning
-                                                      .withOpacity(0.1),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: const Text(
-                                                  'READ',
-                                                  style: TextStyle(
-                                                    fontSize: 8,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: AppColors.warning,
-                                                  ),
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          item.subtitle,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isSelected
-                                                ? item.color.withOpacity(0.8)
-                                                : AppColors.textSecondary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Iconsax.archive,
+                          color: AppColors.primary,
+                          size: 28,
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Footer Info
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.info.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Iconsax.info_circle,
-                        color: AppColors.info,
-                        size: 16,
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Data yang ditandai READ hanya bisa dilihat, tidak bisa diubah.',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: AppColors.info,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main Content
-          Expanded(
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.border),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
+                        SizedBox(width: 12),
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _getCurrentTitle(),
-                              style: const TextStyle(
-                                fontSize: 24,
+                              'DATA MASTER',
+                              style: TextStyle(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 4),
                             Text(
-                              _getCurrentSubtitle(),
-                              style: const TextStyle(
-                                fontSize: 14,
+                              'Kelola data master sistem',
+                              style: TextStyle(
+                                fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              _menuItems[_selectedIndex].color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _menuItems[_selectedIndex].activeIcon,
-                              color: _menuItems[_selectedIndex].color,
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'hafizd-kurniawan',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _menuItems[_selectedIndex].color,
+                      ],
+                    ),
+                  ),
+
+                  // Menu Items
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _menuItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _menuItems[index];
+                        final isSelected = _selectedIndex == index;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedIndex = index;
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? item.color.withOpacity(0.1)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: item.color.withOpacity(0.3))
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? item.color
+                                            : item.color.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        isSelected ? item.activeIcon : item.icon,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : item.color,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  item.title,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: isSelected
+                                                        ? FontWeight.w600
+                                                        : FontWeight.w500,
+                                                    color: isSelected
+                                                        ? item.color
+                                                        : AppColors.textPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (item.isReadOnly)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.warning
+                                                        .withOpacity(0.1),
+                                                    borderRadius:
+                                                        BorderRadius.circular(4),
+                                                  ),
+                                                  child: const Text(
+                                                    'READ',
+                                                    style: TextStyle(
+                                                      fontSize: 8,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: AppColors.warning,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            item.subtitle,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isSelected
+                                                  ? item.color.withOpacity(0.8)
+                                                  : AppColors.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                ),
 
-                // Content
-                Expanded(
-                  child: _getCurrentScreen(),
-                ),
-              ],
+                  // Footer Info
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.info.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Iconsax.info_circle,
+                          color: AppColors.info,
+                          size: 16,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Data yang ditandai READ hanya bisa dilihat, tidak bisa diubah.',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.info,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Main Content
+            Expanded(
+              child: Column(
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: AppColors.surface,
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getCurrentTitle(),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _getCurrentSubtitle(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                _menuItems[_selectedIndex].color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _menuItems[_selectedIndex].activeIcon,
+                                color: _menuItems[_selectedIndex].color,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'POS Bengkel',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _menuItems[_selectedIndex].color,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Content
+                  Expanded(
+                    child: _getCurrentScreen(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
