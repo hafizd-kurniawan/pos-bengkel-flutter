@@ -123,7 +123,8 @@ class _ServiceCompletionScreenState extends State<ServiceCompletionScreen> {
                         const SizedBox(width: 8),
                         ...List.generate(_statusOptions.length, (index) {
                           final status = _statusOptions[index];
-                          final isSelected = provider.selectedStatus == status;
+                          final isSelected = provider.selectedStatus == status || 
+                                           (provider.selectedStatus == 'Semua' && status == 'Completed');
 
                           return Padding(
                             padding: const EdgeInsets.only(right: 8),
@@ -132,7 +133,9 @@ class _ServiceCompletionScreenState extends State<ServiceCompletionScreen> {
                               selected: isSelected,
                               onSelected: (selected) {
                                 if (selected) {
-                                  provider.setSelectedStatus(status);
+                                  // Map UI status to API status
+                                  String apiStatus = status == 'Ready for Pickup' ? 'Completed' : status;
+                                  provider.setSelectedStatus(apiStatus);
                                 }
                               },
                               selectedColor: AppColors.primary.withOpacity(0.2),
@@ -318,23 +321,33 @@ class _ServiceCompletionScreenState extends State<ServiceCompletionScreen> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(
-                                    Iconsax.setting_2,
+                                    Iconsax.tick_circle,
                                     size: 64,
                                     color: AppColors.textTertiary,
                                   ),
                                   const SizedBox(height: 16),
                                   const Text(
-                                    'Belum ada service job',
+                                    'Belum ada servis yang siap diambil',
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Servis yang sudah selesai akan muncul di sini',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors.textTertiary,
+                                    ),
+                                  ),
                                   const SizedBox(height: 16),
                                   ElevatedButton.icon(
-                                    onPressed: _showCreateDialog,
-                                    icon: const Icon(Iconsax.add),
-                                    label: const Text('Buat Service Job'),
+                                    onPressed: () {
+                                      context.read<ServiceJobProvider>().loadServiceJobs(status: 'Completed');
+                                    },
+                                    icon: const Icon(Iconsax.refresh),
+                                    label: const Text('Refresh Data'),
                                   ),
                                 ],
                               ),
@@ -687,13 +700,39 @@ class _ServiceCompletionScreenState extends State<ServiceCompletionScreen> {
             onPressed: () async {
               Navigator.pop(context);
               // TODO: Implement pickup finalization
-              // This would typically update the service job status to "Picked Up" or "Delivered"
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pengambilan kendaraan berhasil dikonfirmasi'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
+              // This would call: PUT /api/v1/service-jobs/{id} with status "Picked Up"
+              if (serviceJob.serviceJobId != null) {
+                final success = await provider.updateServiceJobStatus(
+                  serviceJob.serviceJobId!,
+                  'Picked Up',
+                  'Kendaraan telah diambil customer pada ${DateTime.now()}',
+                );
+                
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Pengambilan kendaraan berhasil dikonfirmasi'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                  // Refresh the list to remove picked up items
+                  context.read<ServiceJobProvider>().loadServiceJobs(status: 'Completed');
+                } else if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal konfirmasi: ${provider.errorMessage ?? 'Error tidak diketahui'}'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('ID service job tidak valid'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.success,

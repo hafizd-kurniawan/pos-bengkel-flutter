@@ -253,20 +253,65 @@ class _CreateServiceReceptionDialogState
                       if (_selectedCustomer != null)
                         Consumer<CustomerVehicleProvider>(
                           builder: (context, vehicleProvider, _) {
+                            if (vehicleProvider.isLoading) {
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColors.border),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text('Memuat kendaraan...'),
+                                  ],
+                                ),
+                              );
+                            }
+                            
+                            if (vehicleProvider.errorMessage != null) {
+                              return Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: AppColors.error),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.error, color: AppColors.error),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Error: ${vehicleProvider.errorMessage}',
+                                        style: const TextStyle(color: AppColors.error),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            
                             return DropdownButtonFormField<CustomerVehicle>(
                               value: _selectedVehicle,
                               decoration: const InputDecoration(
                                 labelText: 'Pilih Kendaraan *',
                                 prefixIcon: Icon(Iconsax.car),
                               ),
-                              hint: const Text('Pilih kendaraan customer'),
+                              hint: Text(vehicleProvider.customerVehicles.isEmpty 
+                                  ? 'Tidak ada kendaraan untuk customer ini' 
+                                  : 'Pilih kendaraan customer'),
                               items: vehicleProvider.customerVehicles.map((vehicle) {
                                 return DropdownMenuItem<CustomerVehicle>(
                                   value: vehicle,
                                   child: Text('${vehicle.plateNumber} - ${vehicle.brand} ${vehicle.model}'),
                                 );
                               }).toList(),
-                              onChanged: (vehicle) {
+                              onChanged: vehicleProvider.customerVehicles.isEmpty ? null : (vehicle) {
                                 setState(() {
                                   _selectedVehicle = vehicle;
                                 });
@@ -340,12 +385,21 @@ class _CreateServiceReceptionDialogState
                       TextFormField(
                         controller: _estimatedCostController,
                         decoration: const InputDecoration(
-                          labelText: 'Estimasi Biaya',
+                          labelText: 'Estimasi Biaya *',
                           hintText: 'Input estimasi biaya servis',
                           prefixIcon: Icon(Iconsax.money_recive),
                           prefixText: 'Rp ',
                         ),
                         keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value != null && value.trim().isNotEmpty) {
+                            final cost = double.tryParse(value.trim());
+                            if (cost == null || cost < 0) {
+                              return 'Masukkan nilai yang valid';
+                            }
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
 
