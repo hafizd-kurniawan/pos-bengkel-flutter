@@ -6,7 +6,12 @@ import 'package:pos_bengkel/features/kasir/providers/cart_provider.dart';
 import 'package:pos_bengkel/shared/models/customer.dart';
 
 class CustomerSelectionDialog extends StatefulWidget {
-  const CustomerSelectionDialog({super.key});
+  final Function(Customer?)? onCustomerSelected;
+
+  const CustomerSelectionDialog({
+    super.key,
+    this.onCustomerSelected,
+  });
 
   @override
   State<CustomerSelectionDialog> createState() =>
@@ -49,11 +54,24 @@ class _CustomerSelectionDialogState extends State<CustomerSelectionDialog> {
       builder: (context) => AddCustomerDialog(
         searchQuery: _searchQuery,
         onCustomerAdded: (customer) {
-          context.read<CartProvider>().setCustomer(customer);
+          if (widget.onCustomerSelected != null) {
+            widget.onCustomerSelected!(customer);
+          } else {
+            context.read<CartProvider>().setCustomer(customer);
+          }
           Navigator.pop(context); // Close customer selection dialog
         },
       ),
     );
+  }
+
+  void _selectCustomer(Customer? customer) {
+    if (widget.onCustomerSelected != null) {
+      widget.onCustomerSelected!(customer);
+    } else {
+      context.read<CartProvider>().setCustomer(customer);
+    }
+    Navigator.pop(context);
   }
 
   @override
@@ -128,10 +146,7 @@ class _CustomerSelectionDialogState extends State<CustomerSelectionDialog> {
                 ),
                 title: const Text('Customer Umum'),
                 subtitle: const Text('Pelanggan tanpa data khusus'),
-                onTap: () {
-                  context.read<CartProvider>().setCustomer(null);
-                  Navigator.pop(context);
-                },
+                onTap: () => _selectCustomer(null),
               ),
             ),
             const SizedBox(height: 8),
@@ -236,10 +251,7 @@ class _CustomerSelectionDialogState extends State<CustomerSelectionDialog> {
                                 ),
                             ],
                           ),
-                          onTap: () {
-                            context.read<CartProvider>().setCustomer(customer);
-                            Navigator.pop(context);
-                          },
+                          onTap: () => _selectCustomer(customer),
                         ),
                       );
                     },
@@ -311,7 +323,6 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
       address: _addressController.text.trim().isNotEmpty
           ? _addressController.text.trim()
           : null,
-      // status: 'Aktif',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
