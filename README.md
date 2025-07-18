@@ -6126,3 +6126,39 @@ Response:
 
 }
 
+# Fitur pertama yg harus di kembangkan dari endpoint tersesbut
+TRANSAKSI TOKO
+ > Penjualan
+ 	Kasir
+	Transaksi Kasir
+		Home
+		Barang
+		No. Invoice:
+		2025071840
+		Barcode / Kode Barang
+		No.	Nama	Harga	QTY	No. SN	Sub Total	Aksi
+		Customer
+		Tambah Customer
+		Tipe Pembayaran
+		Cash
+		Total	Rp.
+		0
+		Bayar	Rp.
+		Kembali	Rp.
+
+	 Invoice Penjualan menggunakan pagination
+		Data Barang Penjualan
+		Show
+		10
+		entries
+		Search:
+		No.	Invoice	Tanggal Transaksi	Customer	Kasir	Sub Total	Aksi
+		1	2025071339	13 July 2025 6:21:55 pm	Customer Umum	Seniman Koding	Rp. 56.000
+
+
+		2	2025070238	02 July 2025 11:13:37 am	AMIN	Seniman Koding	Rp. 112.000
+
+ 	Piutang
+		Belum Lunas
+
+		Lunas
