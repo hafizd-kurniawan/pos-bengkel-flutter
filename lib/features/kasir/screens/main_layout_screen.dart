@@ -10,6 +10,7 @@ import 'package:pos_bengkel/features/kasir/screens/dashboard_screen.dart';
 import 'package:pos_bengkel/features/kasir/screens/settings_screen.dart';
 import 'package:pos_bengkel/features/servis/screens/service_reception_screen.dart';
 import 'package:pos_bengkel/features/servis/screens/service_completion_screen.dart';
+import 'package:pos_bengkel/features/servis/screens/reconditioning_screen.dart';
 import 'package:pos_bengkel/features/master/screens/product_master_screen.dart';
 import 'package:pos_bengkel/features/master/screens/customer_master_screen.dart';
 import 'package:pos_bengkel/features/master/screens/vehicle_master_screen.dart';
@@ -96,6 +97,14 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       title: 'Pengambilan Setelah Servis',
       icon: Iconsax.tick_circle,
       activeIcon: Iconsax.tick_circle5,
+      isGroup: false,
+      parentGroup: 'servis_group',
+    ),
+    NavigationItem(
+      id: 'reconditioning',
+      title: 'Rekondisi Kendaraan',
+      icon: Iconsax.setting_3,
+      activeIcon: Iconsax.setting_35,
       isGroup: false,
       parentGroup: 'servis_group',
     ),
@@ -229,6 +238,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
       'piutang': const KasirReceivablesScreen(),
       'penerimaan_servis': const ServiceReceptionScreen(),
       'service_completion': const ServiceCompletionScreen(),
+      'reconditioning': const ReconditioningScreen(),
       'products_master': const ProductMasterScreen(),
       'customers_master': const CustomerMasterScreen(),
       'vehicles_master': const VehicleMasterScreen(),
@@ -287,6 +297,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Penerimaan Servis';
       case 'service_completion':
         return 'Pengambilan Setelah Servis';
+      case 'reconditioning':
+        return 'Rekondisi Kendaraan';
       case 'products_master':
         return 'Data Barang';
       case 'customers_master':
@@ -325,6 +337,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen>
         return 'Kelola penerimaan kendaraan untuk servis';
       case 'service_completion':
         return 'Kelola pengambilan kendaraan yang sudah selesai servis';
+      case 'reconditioning':
+        return 'Kelola pekerjaan rekondisi kendaraan';
       case 'products_master':
         return 'Kelola data produk dan spare parts (Read Only)';
       case 'customers_master':
