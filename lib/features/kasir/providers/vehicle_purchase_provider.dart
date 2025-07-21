@@ -3,8 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:pos_bengkel/shared/models/customer.dart';
 import 'package:pos_bengkel/shared/models/customer_vehicle.dart';
 import 'package:pos_bengkel/shared/models/vehicle_purchase.dart';
+import 'package:pos_bengkel/shared/models/vehicle.dart';
+import 'package:pos_bengkel/core/services/api_service.dart';
 
 class VehiclePurchaseProvider extends ChangeNotifier {
+  final ApiService _apiService = ApiService();
+  
   // Current purchase form data
   Customer? _selectedCustomer;
   CustomerVehicle? _selectedVehicle;
@@ -16,6 +20,7 @@ class VehiclePurchaseProvider extends ChangeNotifier {
 
   // Purchase history
   List<VehiclePurchase> _purchases = [];
+  List<Vehicle> _vehicles = [];
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -28,6 +33,7 @@ class VehiclePurchaseProvider extends ChangeNotifier {
   String get nextAction => _nextAction;
   String get invoiceNumber => _invoiceNumber;
   List<VehiclePurchase> get purchases => _purchases;
+  List<Vehicle> get vehicles => _vehicles;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -89,42 +95,38 @@ class VehiclePurchaseProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Simulate API calls for now - replace with actual API implementation
+  // API calls for Vehicle Purchase endpoints
   Future<bool> createPurchase() async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
 
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
+      final purchaseData = {
+        'invoice_number': _invoiceNumber,
+        'customer_id': _selectedCustomer!.customerId,
+        'vehicle_id': _selectedVehicle!.vehicleId,
+        'purchase_price': _purchasePrice,
+        'condition': _condition,
+        'notes': _notes,
+        'next_action': _nextAction,
+      };
 
-      // Create purchase object
-      final purchase = VehiclePurchase(
-        invoiceNumber: _invoiceNumber,
-        customerId: _selectedCustomer!.customerId!,
-        vehicleId: _selectedVehicle!.vehicleId!,
-        purchasePrice: _purchasePrice,
-        condition: _condition,
-        notes: _notes,
-        purchaseDate: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        status: 'sukses',
-        nextAction: _nextAction,
-        customer: _selectedCustomer,
-        vehicle: _selectedVehicle,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+      final response = await _apiService.post<VehiclePurchase>(
+        '/vehicles/purchase',
+        data: purchaseData,
+        fromJson: (json) => VehiclePurchase.fromJson(json),
       );
 
-      // Add to purchases list
-      _purchases.insert(0, purchase);
-
-      // Clear form
-      clearForm();
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
+      if (response.success && response.data != null) {
+        _purchases.insert(0, response.data!);
+        clearForm();
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        throw Exception(response.message);
+      }
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
@@ -139,11 +141,65 @@ class VehiclePurchaseProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await _apiService.get<List<VehiclePurchase>>(
+        '/vehicles/purchases',
+        fromJson: (json) => (json as List)
+            .map((item) => VehiclePurchase.fromJson(item))
+            .toList(),
+      );
 
-      // For now, purchases are stored locally
-      // In real implementation, this would call API
+      if (response.success && response.data != null) {
+        _purchases = response.data!;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<Vehicle?> getVehicleById(String vehicleId) async {
+    try {
+      final response = await _apiService.get<Vehicle>(
+        '/vehicles/$vehicleId',
+        fromJson: (json) => Vehicle.fromJson(json),
+      );
+
+      if (response.success && response.data != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      print('Error getting vehicle: $e');
+      return null;
+    }
+  }
+
+  Future<void> loadVehicles({String? status}) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      Map<String, dynamic> queryParams = {};
+      if (status != null) {
+        queryParams['status'] = status;
+      }
+
+      final response = await _apiService.get<List<Vehicle>>(
+        '/vehicles',
+        queryParameters: queryParams,
+        fromJson: (json) => (json as List)
+            .map((item) => Vehicle.fromJson(item))
+            .toList(),
+      );
+
+      if (response.success && response.data != null) {
+        _vehicles = response.data!;
+      }
 
       _isLoading = false;
       notifyListeners();

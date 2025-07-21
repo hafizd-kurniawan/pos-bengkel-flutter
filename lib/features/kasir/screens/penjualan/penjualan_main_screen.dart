@@ -4,6 +4,8 @@ import 'package:pos_bengkel/core/theme/app_theme.dart';
 import 'package:pos_bengkel/features/kasir/screens/kasir_pos_screen.dart';
 import 'package:pos_bengkel/features/kasir/screens/kasir_invoice_screen.dart';
 import 'package:pos_bengkel/features/kasir/screens/kasir_receivables_screen.dart';
+import 'package:pos_bengkel/features/kasir/screens/penjualan/vehicle_sales_screen.dart';
+import 'package:pos_bengkel/features/kasir/screens/penjualan/installment_management_screen.dart';
 
 class PenjualanMainScreen extends StatefulWidget {
   const PenjualanMainScreen({super.key});
@@ -19,7 +21,7 @@ class _PenjualanMainScreenState extends State<PenjualanMainScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -56,6 +58,14 @@ class _PenjualanMainScreenState extends State<PenjualanMainScreen>
               icon: Icon(Iconsax.wallet_money),
               text: 'Piutang',
             ),
+            Tab(
+              icon: Icon(Iconsax.car),
+              text: 'Jual Mobil',
+            ),
+            Tab(
+              icon: Icon(Iconsax.card_coin),
+              text: 'Cicilan',
+            ),
           ],
         ),
       ),
@@ -65,6 +75,8 @@ class _PenjualanMainScreenState extends State<PenjualanMainScreen>
           KasirPosScreen(),
           KasirInvoiceScreen(),
           KasirReceivablesScreen(),
+          VehicleSalesScreen(),
+          InstallmentManagementScreen(),
         ],
       ),
     );

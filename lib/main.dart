@@ -11,7 +11,10 @@ import 'features/kasir/providers/transaction_provider.dart';
 import 'features/kasir/providers/cart_provider.dart';
 import 'features/kasir/providers/customer_vehicle_provider.dart';
 import 'features/kasir/providers/vehicle_purchase_provider.dart';
+import 'features/kasir/providers/vehicle_sales_provider.dart';
+import 'features/kasir/providers/installment_provider.dart';
 import 'features/servis/providers/service_job_provider.dart';
+import 'features/servis/providers/reconditioning_provider.dart';
 import 'features/splash/splash_screen.dart';
 
 void main() async {
@@ -47,7 +50,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => CustomerVehicleProvider()),
         ChangeNotifierProvider(create: (_) => VehiclePurchaseProvider()),
+        ChangeNotifierProvider(create: (_) => VehicleSalesProvider()),
+        ChangeNotifierProvider(create: (_) => InstallmentProvider()),
         ChangeNotifierProvider(create: (_) => ServiceJobProvider()),
+        ChangeNotifierProvider(create: (_) => ReconditioningProvider()),
       ],
       child: MaterialApp(
         title: 'POS Bengkel',
